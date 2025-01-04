@@ -19,6 +19,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"terminder/repository"
 	"terminder/terminder"
 
@@ -29,6 +30,17 @@ const terminderDir = ".terminder"
 
 var repo *repository.Repository
 var app *terminder.App
+
+var version = func() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, setting := range info.Settings {
+			if setting.Key == "vcs.revision" {
+				return setting.Value[:7]
+			}
+		}
+	}
+	return "unknown"
+}()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -41,6 +53,7 @@ General workflow:
 2. Do 'echo "\nterminder" >> $HOME/.bashrc' or whatever file you use to configure your shell.
    Now you'll see notifications each time you open a new terminal session.
 3. Use 'terminder dismiss' when you no longer need a notification.`,
+	Version: version,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
