@@ -46,13 +46,13 @@ $ terminder create do my taxes -i 1y`,
 			if err != nil {
 				return err
 			}
-			fmt.Println("Succesfully created notification: ", notification.Body)
+			fmt.Println("Succesfully created notification:", notification.Body)
 		default:
 			reminder, err := app.CreateReminder(cmd.Context(), strings.Join(args, " "), interval)
 			if err != nil {
 				return err
 			}
-			fmt.Println("Succesfully created reminder: ", reminder.Body)
+			fmt.Println("Succesfully created reminder:", reminder.Body)
 		}
 		return nil
 	},

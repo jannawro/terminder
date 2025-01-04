@@ -45,7 +45,7 @@ you'd like to dimiss. When given no args a selection menu appears.`,
 				if err != nil {
 					return err
 				}
-				fmt.Println("Successfully dismissed notification: ", notification.Body)
+				fmt.Println("Successfully dismissed notification:", notification.Body)
 				if forever {
 					_, err := app.DismissReminder(egContext, notification)
 					if err != nil {
