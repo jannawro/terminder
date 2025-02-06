@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -26,14 +27,50 @@ import (
 // dismissCmd represents the dismiss command
 var dismissCmd = &cobra.Command{
 	Use:   "dismiss",
-	Short: "Dismisses a notification",
-	Long: `Dismisses a notification. Expects either no args or the number of the notification 
+	Short: "Dismiss a notification",
+	Long: `Dismiss a notification. Expects either no args or the ID of the notification 
 you'd like to dimiss. When given no args a selection menu appears.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		forever, err := cmd.Flags().GetBool("forever")
 		if err != nil {
 			return err
 		}
+
+		if len(args) == 0 {
+			notifications, err := app.GetAllActiveNotifications(cmd.Context())
+			if err != nil {
+				return err
+			}
+
+			prompt := promptui.Select{
+				Label:     "Select to dismiss",
+				IsVimMode: true,
+				Items:     notifications,
+				Templates: &promptui.SelectTemplates{
+					Active:   `> {{ .ID }} {{ .Body }}`,
+					Inactive: `  {{ .ID }} {{ .Body }}`,
+					Selected: `  {{ .ID }} {{ .Body }}`,
+				},
+			}
+
+			index, _, err := prompt.Run()
+			if err != nil {
+				return err
+			}
+			notification, err := app.DismissNotification(cmd.Context(), notifications[index].ID)
+			if err != nil {
+				return err
+			}
+			fmt.Println("Successfully dismissed notification:", notification.Body)
+			if forever {
+				_, err := app.DismissReminder(cmd.Context(), notification)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+
 		eg, egContext := errgroup.WithContext(cmd.Context())
 		for _, arg := range args {
 			eg.Go(func() error {
